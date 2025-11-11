@@ -913,7 +913,7 @@ where
             }
 
             Effect::ScheduleTimeout(timeout, r) => {
-                let duration = state.timeouts.duration_for(timeout.kind, timeout.round);
+                let duration = state.timeouts.duration_for(timeout);
                 state.timers.start_timer(timeout, duration);
 
                 Ok(r.resume_with(()))
@@ -1120,7 +1120,7 @@ where
             }
 
             Effect::GetValue(height, round, timeout, r) => {
-                let timeout_duration = state.timeouts.duration_for(timeout.kind, timeout.round);
+                let timeout_duration = state.timeouts.duration_for(timeout);
 
                 self.get_value(myself, height, round, timeout_duration)
                     .map_err(|e| {
