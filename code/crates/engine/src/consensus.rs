@@ -196,6 +196,9 @@ pub struct State<Ctx: Context> {
     /// Scheduler for timers
     timers: Timers,
 
+    /// Timeouts for various consensus steps
+    timeouts: Ctx::Timeouts,
+
     /// The state of the consensus state machine
     consensus: ConsensusState<Ctx>,
 
@@ -274,9 +277,6 @@ where
         state: &mut State<Ctx>,
         input: ConsensusInput<Ctx>,
     ) -> Result<(), ConsensusError<Ctx>> {
-        // Extract timeouts before the process! macro to avoid borrow checker issues
-        let timeouts = *state.consensus.timeouts();
-
         malachitebft_core_consensus::process!(
             input: input,
             state: &mut state.consensus,
@@ -285,7 +285,7 @@ where
                 let handler_state = HandlerState {
                     phase: state.phase,
                     timers: &mut state.timers,
-                    timeouts,
+                    timeouts: state.timeouts,
                 };
 
                 self.handle_effect(myself, handler_state, effect).await
@@ -352,6 +352,11 @@ where
                     if let Err(e) = sync.cast(SyncMsg::StartedHeight(height, start_type)) {
                         error!(%height, "Error when notifying sync of started height: {e}")
                     }
+                }
+
+                // Update the timeouts if provided
+                if let Some(new_timeouts) = updates.timeouts {
+                    state.timeouts = new_timeouts;
                 }
 
                 // Start consensus for the given height
@@ -1267,6 +1272,7 @@ where
 
         Ok(State {
             timers: Timers::new(Box::new(myself)),
+            timeouts: self.params.initial_timeouts,
             consensus: ConsensusState::new(
                 self.ctx.clone(),
                 self.params.clone(),

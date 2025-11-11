@@ -19,7 +19,7 @@ where
     #[cfg(feature = "metrics")]
     metrics.step_end(state.driver.step());
 
-    state.reset_and_start_height(height, height_updates);
+    state.reset_and_start_height(height, height_updates.validator_set);
 
     debug_assert_eq!(state.height(), height);
     debug_assert_eq!(state.round(), Round::Nil);
