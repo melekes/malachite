@@ -364,7 +364,7 @@ where
                     .process_input(
                         &myself,
                         state,
-                        ConsensusInput::StartHeight(height, updates, is_restart),
+                        ConsensusInput::StartHeight(height, updates.validator_set, is_restart),
                     )
                     .await;
 
